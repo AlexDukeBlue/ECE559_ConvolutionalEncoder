@@ -29,7 +29,7 @@ HEADER
 	DATA_DURATION = 1000.0;
 	SIMULATION_TIME = 0.0;
 	GRID_PHASE = 0.0;
-	GRID_PERIOD = 10.0;
+	GRID_PERIOD = 5.0;
 	GRID_DUTY_CYCLE = 50;
 }
 
@@ -318,7 +318,12 @@ TRANSITION_LIST("clk")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		NODE
+		{
+			REPEAT = 100;
+			LEVEL 0 FOR 5.0;
+			LEVEL 1 FOR 5.0;
+		}
 	}
 }
 
@@ -327,7 +332,8 @@ TRANSITION_LIST("reset")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 1 FOR 10.0;
+		LEVEL 0 FOR 990.0;
 	}
 }
 
@@ -336,7 +342,9 @@ TRANSITION_LIST("fifo_w_data[7]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 10.0;
+		LEVEL 0 FOR 980.0;
 	}
 }
 
@@ -345,7 +353,9 @@ TRANSITION_LIST("fifo_w_data[6]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 20.0;
+		LEVEL 0 FOR 970.0;
 	}
 }
 
@@ -354,7 +364,9 @@ TRANSITION_LIST("fifo_w_data[5]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 10.0;
+		LEVEL 0 FOR 980.0;
 	}
 }
 
@@ -363,7 +375,9 @@ TRANSITION_LIST("fifo_w_data[4]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 20.0;
+		LEVEL 0 FOR 970.0;
 	}
 }
 
@@ -372,7 +386,9 @@ TRANSITION_LIST("fifo_w_data[3]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 10.0;
+		LEVEL 0 FOR 980.0;
 	}
 }
 
@@ -381,7 +397,9 @@ TRANSITION_LIST("fifo_w_data[2]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 20.0;
+		LEVEL 0 FOR 970.0;
 	}
 }
 
@@ -390,7 +408,9 @@ TRANSITION_LIST("fifo_w_data[1]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 10.0;
+		LEVEL 0 FOR 980.0;
 	}
 }
 
@@ -399,7 +419,9 @@ TRANSITION_LIST("fifo_w_data[0]")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 20.0;
+		LEVEL 0 FOR 970.0;
 	}
 }
 
@@ -408,7 +430,9 @@ TRANSITION_LIST("wrreq")
 	NODE
 	{
 		REPEAT = 1;
-		LEVEL 0 FOR 1000.0;
+		LEVEL 0 FOR 10.0;
+		LEVEL 1 FOR 20.0;
+		LEVEL 0 FOR 970.0;
 	}
 }
 
@@ -808,7 +832,7 @@ DISPLAY_LINE
 
 TIME_BAR
 {
-	TIME = 0;
+	TIME = 10000;
 	MASTER = TRUE;
 }
 ;
