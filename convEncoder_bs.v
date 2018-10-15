@@ -5,7 +5,7 @@ module convEncoder_bs(clk, reset, blk_size, tail_bits, blk_empty, blk_data, blk_
 	input clk, reset, blk_size, blk_empty;
 	output [6:0] cOut; 
 	output [2:0] dOut;
-	output blk_rdreq; 
+	output reg blk_rdreq; 
 	
 	localparam small_size = 13'd1056;
 	localparam large_size = 13'd6144;
@@ -17,11 +17,11 @@ module convEncoder_bs(clk, reset, blk_size, tail_bits, blk_empty, blk_data, blk_
 	wire compute_enable, d0, d1, d2;
 	
 	assign size = (blk_size) ? large_size : small_size;
-   assign compute_enable = (computation_counter < size) ? 1'b1 : 1'b0;
+   assign compute_enable = ((computation_counter < size) && !(((computation_counter % 8) == 0) && (blk_empty))) ? 1'b1 : 1'b0;
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
 	assign d1 = c0 ^ c1 ^ c2 ^ c3 ^ c6;
 	assign d2 = c0 ^ c1 ^ c2 ^ c4 ^ c6;
-	assign blk_rdreq = computation_counter % 8;
+	//assign blk_rdreq = computation_counter % 8; Is there a better way to set blk_rdreq than to just have it be a register?
 	assign cOut = {c0, c1, c2, c3, c4, c5, c6};
 	assign dOut = {d0, d1, d2};
 	
@@ -49,7 +49,7 @@ module convEncoder_bs(clk, reset, blk_size, tail_bits, blk_empty, blk_data, blk_
 				c5 <= c4;
 				c6 <= c5;
 				computation_counter <= computation_counter + 13'd1;
-				if((computation_counter % 8) && (!blk_empty))
+				if(((computation_counter % 8) == 0) && (!blk_empty))
 				begin
 					blk_rdreq <= 1'b1;
 				end
