@@ -5,7 +5,7 @@ module convEncoder_bs(clk, reset, blk_ready, blk_size, tail_bits, blk_empty, blk
 	input clk, reset, blk_ready, blk_size, blk_empty;
 	output [6:0] cOut; 
 	output [2:0] dOut;
-	output reg blk_rdreq; 
+	output blk_rdreq; 
 	
 	reg c0, c1, c2, c3, c4, c5, c6, compute_enable, instantiate_computation;
 	
@@ -15,7 +15,7 @@ module convEncoder_bs(clk, reset, blk_ready, blk_size, tail_bits, blk_empty, blk
 	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, computation_done;
 
 	assign computation_done = (blk_size) ? !large_computation_notdone : !small_computation_notdone;
-	assign computation_counter = (blk_size) ? large_counter_out : {1'b0, 1'b0, small_counter_out};
+	assign computation_counter = (blk_size) ? large_counter_out : {1'b0, small_counter_out};
 	assign blk_rdreq = on_last_bit_of_input && !blk_empty && compute_enable;
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
 	assign d1 = c0 ^ c1 ^ c2 ^ c3 ^ c6;
@@ -69,6 +69,7 @@ module convEncoder_bs(clk, reset, blk_ready, blk_size, tail_bits, blk_empty, blk
 			end
 		end else if(reset)
 		begin 
+			compute_enable <= 1'b0;
 			instantiate_computation <= 1'b0;
 		end
 	end
