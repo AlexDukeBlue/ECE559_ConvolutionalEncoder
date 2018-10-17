@@ -1,58 +1,58 @@
-module convEncoder_bs(clk, reset, blk_size, tail_bits, blk_empty, blk_data, blk_rdreq, dOut, cOut);
+module convEncoder_bs(clk, reset, blk_ready, blk_size, tail_bits, blk_empty, blk_data, blk_rdreq, dOut, cOut);
 	//If the input block is FIFO, not sure how we get the last six
 	input [7:0] blk_data;
 	input [5:0] tail_bits;
-	input clk, reset, blk_size, blk_empty;
+	input clk, reset, blk_ready, blk_size, blk_empty;
 	output [6:0] cOut; 
 	output [2:0] dOut;
 	output reg blk_rdreq; 
 	
-	localparam small_size = 13'd1056;
-	localparam large_size = 13'd6144;
+	reg c0, c1, c2, c3, c4, c5, c6, compute_enable, instantiate_computation;
 	
-	reg [12:0]  computation_counter;
-	reg c0, c1, c2, c3, c4, c5, c6, instantiate_computation;
-	
-	wire [12:0] size;
-	wire compute_enable, d0, d1, d2;
-	
-	assign size = (blk_size) ? large_size : small_size;
-   assign compute_enable = ((computation_counter < size) && !(((computation_counter % 8) == 0) && (blk_empty))) ? 1'b1 : 1'b0;
+	wire [12:0] computation_counter, large_counter_out;
+	wire [11:0] small_counter_out;
+	wire [2:0] counter_mod;
+	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, computation_done;
+
+	assign computation_done = (blk_size) ? !large_computation_notdone : !small_computation_notdone;
+	assign computation_counter = (blk_size) ? large_counter_out : {1'b0, 1'b0, small_counter_out};
+	assign blk_rdreq = on_last_bit_of_input && !blk_empty && compute_enable;
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
 	assign d1 = c0 ^ c1 ^ c2 ^ c3 ^ c6;
 	assign d2 = c0 ^ c1 ^ c2 ^ c4 ^ c6;
-	//assign blk_rdreq = computation_counter % 8; Is there a better way to set blk_rdreq than to just have it be a register?
 	assign cOut = {c0, c1, c2, c3, c4, c5, c6};
 	assign dOut = {d0, d1, d2};
-	
-	//We need to figure out how when to decide to start/continue computation other than what it is above.
-	
-	//I think it is necessary for us to use a singly-clocked FIFO (one for read and one for write).
-	//This also allows us to input the compute output as bit-serial, but output 8-bits at a time.
-	//	dc_fifo fifo0();
-	//	dc_fifo fifo1();
-	//	dc_fifo fifo2();
 
+	counter_large_block clb(compute_enable, clk, reset, large_counter_out);
+	counter_small_block csb(compute_enable, clk, reset, small_counter_out);
+	large_counter_compare lcc(large_counter_out, large_computation_notdone);
+	small_counter_compare scc(small_counter_out, small_computation_notdone);
+	mod_counter mc(compute_enable, clk, reset, counter_mod);
+	mod_compare compare_mod(counter_mod, on_last_bit_of_input);
+	
 	always @(posedge clk) 
 	begin
-		blk_rdreq <= 1'b0;
+		if(computation_done)
+		begin
+			compute_enable <= 1'b0;
+		end
+		if(blk_ready && !compute_enable)
+		begin
+			 instantiate_computation <= 1'b1;
+			 compute_enable <= 1'b1;
+		end
 		if(!reset)
 		begin
 			if(compute_enable && !instantiate_computation)
 			begin
 				//Computation Logic
-				c0 <= blk_data[computation_counter % 8];
+				c0 <= blk_data[counter_mod];
 				c1 <= c0;
 				c2 <= c1;
 				c3 <= c2;
 				c4 <= c3;
 				c5 <= c4;
 				c6 <= c5;
-				computation_counter <= computation_counter + 13'd1;
-				if(((computation_counter % 8) == 0) && (!blk_empty))
-				begin
-					blk_rdreq <= 1'b1;
-				end
 			end else if(instantiate_computation)
 			begin
 				//Instantiation Logic
@@ -65,17 +65,11 @@ module convEncoder_bs(clk, reset, blk_size, tail_bits, blk_empty, blk_data, blk_
 				c4 <= tail_bits[2];
 				c5 <= tail_bits[1];
 				c6 <= tail_bits[0];
-				computation_counter <= computation_counter + 13'd1;
 				instantiate_computation <= 1'b0;
 			end
 		end else if(reset)
 		begin 
-			computation_counter <= 13'd0;
-			instantiate_computation <= 1'b1;
-			if(!blk_empty)
-			begin
-				blk_rdreq <= 1'b1;
-			end
+			instantiate_computation <= 1'b0;
 		end
 	end
 
