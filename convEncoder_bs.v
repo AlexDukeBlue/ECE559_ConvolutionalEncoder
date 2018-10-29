@@ -1,21 +1,19 @@
-module convEncoder_bs(clk, reset, blk_ready, blk_meta, blk_empty, blk_data, blk_meta_rdreq, blk_data_rdreq, dOut, cOut, computation_done, instantiate_computation, compute_enable, counter_out, counter_mod, q0, q1, q2, rdreq_subblock);
+module convEncoder_bs(clk, reset, blk_ready, blk_meta, blk_empty, blk_data, blk_meta_rdreq, blk_data_rdreq, dOut, cOut, q0, q1, q2, rdreq_subblock);
 	//If the input block is FIFO, not sure how we get the last six
 	input [7:0] blk_data, blk_meta;
 	input [2:0] rdreq_subblock;
 	input clk, reset, blk_ready, blk_empty;
-	output [12:0] counter_out;
 	output [7:0] q0, q1, q2;
 	output [6:0] cOut; 
-	output [2:0] dOut, counter_mod;
+	output [2:0] dOut;
 	output blk_meta_rdreq, blk_data_rdreq; 
-	output computation_done, instantiate_computation, compute_enable;
 	
-	reg c0, c1, c2, c3, c4, c5, c6, compute_enable, instantiate_computation, delay_one_cycle;
+	reg c0, c1, c2, c3, c4, c5, c6, instantiate_computation, delay_one_cycle, compute_enable;
 	
-	//wire [12:0] counter_out;
-	//wire [2:0] counter_mod;
+	wire [12:0] counter_out;
 	wire [6:0] out_to_fifo0, out_to_fifo1, out_to_fifo2, encoder_vals;
-	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, computation_done, wrreq_out, rdreq0, rdreq1, rdreq2;
+	wire [2:0] counter_mod;
+	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreq0, rdreq1, rdreq2, empty0, empty1, empty2, usedw0, usedw1, usedw2, computation_done;
 
 	assign computation_done = (blk_meta[0]) ? !large_computation_notdone : !small_computation_notdone;
 	assign blk_meta_rdreq = instantiate_computation && !blk_empty;
@@ -45,21 +43,21 @@ module convEncoder_bs(clk, reset, blk_ready, blk_meta, blk_empty, blk_data, blk_
 			compute_enable <= 1'b0;
 			instantiate_computation <= 1'b0;
 		end
-		else if(delay_one_cycle)
+		else if(computation_done)
 		begin
-			delay_one_cycle <= 1'b0;
-			compute_enable <= 1'b1;
-		end else if(computation_done)
-		begin
-			compute_enable <= 1'b0;
+				compute_enable <= 1'b0;
 		end
-		else if(blk_ready && !compute_enable)
 		begin
-			 instantiate_computation <= 1'b1;
-			 delay_one_cycle <= 1'b1;
-		end
-		else
-		begin
+			if(delay_one_cycle)
+			begin
+				delay_one_cycle <= 1'b0;
+				compute_enable <= 1'b1;
+			end 
+			if(blk_ready && !compute_enable)
+			begin
+				 instantiate_computation <= 1'b1;
+				 delay_one_cycle <= 1'b1;
+			end
 			if(compute_enable)
 			begin
 				//Computation Logic
@@ -70,10 +68,7 @@ module convEncoder_bs(clk, reset, blk_ready, blk_meta, blk_empty, blk_data, blk_
 				c4 <= encoder_vals[2];
 				c5 <= encoder_vals[1];
 				c6 <= encoder_vals[0];
-			   if(instantiate_computation)
-				begin
-					instantiate_computation <= 1'b0;
-				end
+				instantiate_computation <= 1'b0;
 			end
 		end
 	end
