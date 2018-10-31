@@ -45,7 +45,7 @@ module small_counter_compare (
 	output	  alb;
 
 	//wire [10:0] sub_wire0 = 11'h420;
-	wire [10:0] sub_wire0 = 11'd32;
+	wire [10:0] sub_wire0 = 11'd31;
 	wire  sub_wire1;
 	wire  alb = sub_wire1;
 
