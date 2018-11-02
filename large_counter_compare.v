@@ -44,7 +44,7 @@ module large_counter_compare (
 	input	[12:0]  dataa;
 	output	  alb;
 
-	wire [12:0] sub_wire0 = 13'h1800;
+	wire [12:0] sub_wire0 = 13'd6144;
 	wire  sub_wire1;
 	wire  alb = sub_wire1;
 

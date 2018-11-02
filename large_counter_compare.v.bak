@@ -4,7 +4,7 @@
 // MODULE: LPM_COMPARE 
 
 // ============================================================
-// File Name: small_counter_compare.v
+// File Name: large_counter_compare.v
 // Megafunction Name(s):
 // 			LPM_COMPARE
 //
@@ -37,15 +37,14 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module small_counter_compare (
+module large_counter_compare (
 	dataa,
 	alb);
 
-	input	[10:0]  dataa;
+	input	[12:0]  dataa;
 	output	  alb;
 
-	//wire [10:0] sub_wire0 = 11'h420;
-	wire [10:0] sub_wire0 = 11'd32;
+	wire [12:0] sub_wire0 = 13'h1800;
 	wire  sub_wire1;
 	wire  alb = sub_wire1;
 
@@ -65,7 +64,7 @@ module small_counter_compare (
 		LPM_COMPARE_component.lpm_hint = "ONE_INPUT_IS_CONSTANT=YES",
 		LPM_COMPARE_component.lpm_representation = "UNSIGNED",
 		LPM_COMPARE_component.lpm_type = "LPM_COMPARE",
-		LPM_COMPARE_component.lpm_width = 11;
+		LPM_COMPARE_component.lpm_width = 13;
 
 
 endmodule
@@ -82,29 +81,29 @@ endmodule
 // Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone IV E"
 // Retrieval info: PRIVATE: LPM_PIPELINE NUMERIC "0"
 // Retrieval info: PRIVATE: Latency NUMERIC "0"
-// Retrieval info: PRIVATE: PortBValue NUMERIC "1056"
+// Retrieval info: PRIVATE: PortBValue NUMERIC "6144"
 // Retrieval info: PRIVATE: Radix NUMERIC "10"
 // Retrieval info: PRIVATE: SYNTH_WRAPPER_GEN_POSTFIX STRING "0"
 // Retrieval info: PRIVATE: SignedCompare NUMERIC "0"
 // Retrieval info: PRIVATE: aclr NUMERIC "0"
 // Retrieval info: PRIVATE: clken NUMERIC "0"
 // Retrieval info: PRIVATE: isPortBConstant NUMERIC "1"
-// Retrieval info: PRIVATE: nBit NUMERIC "11"
+// Retrieval info: PRIVATE: nBit NUMERIC "13"
 // Retrieval info: PRIVATE: new_diagram STRING "1"
 // Retrieval info: LIBRARY: lpm lpm.lpm_components.all
 // Retrieval info: CONSTANT: LPM_HINT STRING "ONE_INPUT_IS_CONSTANT=YES"
 // Retrieval info: CONSTANT: LPM_REPRESENTATION STRING "UNSIGNED"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "LPM_COMPARE"
-// Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "11"
+// Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "13"
 // Retrieval info: USED_PORT: alb 0 0 0 0 OUTPUT NODEFVAL "alb"
-// Retrieval info: USED_PORT: dataa 0 0 11 0 INPUT NODEFVAL "dataa[10..0]"
-// Retrieval info: CONNECT: @dataa 0 0 11 0 dataa 0 0 11 0
-// Retrieval info: CONNECT: @datab 0 0 11 0 1056 0 0 11 0
+// Retrieval info: USED_PORT: dataa 0 0 13 0 INPUT NODEFVAL "dataa[12..0]"
+// Retrieval info: CONNECT: @dataa 0 0 13 0 dataa 0 0 13 0
+// Retrieval info: CONNECT: @datab 0 0 13 0 6144 0 0 13 0
 // Retrieval info: CONNECT: alb 0 0 0 0 @alb 0 0 0 0
-// Retrieval info: GEN_FILE: TYPE_NORMAL small_counter_compare.v TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL small_counter_compare.inc FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL small_counter_compare.cmp FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL small_counter_compare.bsf FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL small_counter_compare_inst.v FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL small_counter_compare_bb.v FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL large_counter_compare.v TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL large_counter_compare.inc FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL large_counter_compare.cmp FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL large_counter_compare.bsf FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL large_counter_compare_inst.v FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL large_counter_compare_bb.v FALSE
 // Retrieval info: LIB_FILE: lpm
