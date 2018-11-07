@@ -13,7 +13,7 @@
 	wire [2:0] counter_mod;
 	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, usedw0, usedw1, usedw2;
 
-	assign computation_done = (code_block_length[0]) ? ~large_computation_notdone : ~small_computation_notdone;
+	assign computation_done = (code_block_length) ? ~large_computation_notdone : ~small_computation_notdone;
 	assign blk_data_rdreq = (delay_one_cycle && instantiate_computation && ~blk_empty) || (on_last_bit_of_input && ~blk_empty && compute_enable);
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
 	assign d1 = c0 ^ c1 ^ c2 ^ c3 ^ c6;
