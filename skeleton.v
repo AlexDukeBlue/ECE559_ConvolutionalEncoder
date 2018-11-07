@@ -1,20 +1,30 @@
-module skeleton(clk, reset, blk_ready, fifo_w_data, fifo_w_meta, blk_data, blk_meta, wrreq_data, wrreq_meta, cOut, dOut, q0, q1, q2, rdreq_subblock, computation_done, compute_enable, instantiate_computation, counter_out);
-input [7:0] fifo_w_data, fifo_w_meta;
-input [2:0] rdreq_subblock;
-input clk, reset, blk_ready, wrreq_data, wrreq_meta;
-output [12:0] counter_out;
+module skeleton(clk, reset, blk_data, q0, q1, q2, rdreq_subblock, computation_done);
+input clk, reset, rdreq_subblock;
 output [7:0] q0, q1, q2;
-output [7:0] blk_data, blk_meta;
-output [6:0] cOut;
-output [2:0] dOut;
-output computation_done, compute_enable, instantiate_computation;
+output [7:0] blk_data;
+output computation_done;
 
-wire [7:0] blk_data, blk_meta;
+//blk_data is the output of the cod-block segmentation output FIFO.
+//tail_byte is the tail byte from the CRC.
+wire [7:0] blk_data, tail_byte;
+//Currently usedw_data and usedw_meta aren't being used but they are part of the FIFO interface.
 wire usedw_data, usedw_meta;
-wire blk_empty_data, blk_empty_meta, blk_data_rdreq, blk_meta_rdreq;
+//blk_empty is the empty signal for the data FIFO from the code-segmentation block.
+wire blk_empty, blk_data_rdreq, blk_ready, code_block_length;
 
-fifo test_inputdata_fifo(clk, fifo_w_data, blk_data_rdreq, reset, wrreq_data, blk_empty_data, blk_data, usedw_data);
-fifo test_inputmeta_fifo(clk, fifo_w_meta, blk_meta_rdreq, reset, wrreq_meta, blk_empty_meta, blk_meta, usedw_meta);
-convEncoder_bs encoder(clk, reset, blk_ready, blk_meta, blk_empty_data, blk_data, blk_meta_rdreq, blk_data_rdreq, dOut, cOut, q0, q1, q2, rdreq_subblock, computation_done, compute_enable, instantiate_computation, counter_out);
+convEncoder_bs encoder(.clk(clk),
+							  .reset(reset),
+							  .blk_ready(blk_ready),
+							  .tail_byte(tail_byte),
+							  .code_block_length(code_block_length),
+							  .blk_empty(blk_empty),
+							  .blk_data(blk_data),
+							  .blk_data_rdreq(blk_data_rdreq),
+							  .q0(q0),
+							  .q1(q1),
+							  .q2(q2),
+							  .rdreq_subblock(rdreq_subblock),
+							  .computation_done(computation_done)
+							  );
 
 endmodule 

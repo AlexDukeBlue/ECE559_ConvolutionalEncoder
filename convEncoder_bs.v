@@ -1,35 +1,26 @@
- module convEncoder_bs(clk, reset, blk_ready, blk_meta, blk_empty, blk_data, blk_meta_rdreq, blk_data_rdreq, dOut, cOut, q0, q1, q2, rdreq_subblock, computation_done, compute_enable, instantiate_computation, counter_out);
-	//If the input block is FIFO, not sure how we get the last six
-	input [7:0] blk_data, blk_meta;
-	input [2:0] rdreq_subblock;
-	input clk, reset, blk_ready, blk_empty;
-	output [12:0] counter_out;
+ module convEncoder_bs(clk, reset, blk_ready, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done);
+	input [7:0] blk_data, tail_byte;
+	input rdreq_subblock, code_block_length;
+	input clk, reset, blk_ready, blk_empty; 
 	output [7:0] q0, q1, q2;
-	output [6:0] cOut; 
-	output [2:0] dOut;
-	output blk_meta_rdreq, blk_data_rdreq, computation_done; 
-	output reg compute_enable, instantiate_computation;
 	
-	reg c0, c1, c2, c3, c4, c5, c6, delay_one_cycle;
+	output blk_data_rdreq, computation_done; 
 	
-	//wire [12:0] counter_out;
+	reg c0, c1, c2, c3, c4, c5, c6, delay_one_cycle, compute_enable, instantiate_computation;
+	
+	wire [12:0] counter_out;
 	wire [6:0] out_to_fifo0, out_to_fifo1, out_to_fifo2, encoder_vals;
 	wire [2:0] counter_mod;
-	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreq0, rdreq1, rdreq2, empty0, empty1, empty2, usedw0, usedw1, usedw2;
+	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, usedw0, usedw1, usedw2;
 
-	assign computation_done = (blk_meta[0]) ? ~large_computation_notdone : ~small_computation_notdone;
-	assign blk_meta_rdreq = instantiate_computation && ~blk_empty;
+	assign computation_done = (code_block_length[0]) ? ~large_computation_notdone : ~small_computation_notdone;
 	assign blk_data_rdreq = (delay_one_cycle && instantiate_computation && ~blk_empty) || (on_last_bit_of_input && ~blk_empty && compute_enable);
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
 	assign d1 = c0 ^ c1 ^ c2 ^ c3 ^ c6;
 	assign d2 = c0 ^ c1 ^ c2 ^ c4 ^ c6;
-	assign cOut = {c0, c1, c2, c3, c4, c5, c6};
-	assign dOut = {d0, d1, d2};
 	assign wrreq_out = ((counter_mod==3'b000) && (compute_enable && ~computation_done && ~instantiate_computation));
-	assign rdreq0 = rdreq_subblock[0];
-	assign rdreq1 = rdreq_subblock[1];
-	assign rdreq2 = rdreq_subblock[2];
-	assign encoder_vals = (instantiate_computation) ? {blk_data[0], blk_meta[7], blk_meta[6], blk_meta[5], blk_meta[4], blk_meta[3], blk_meta[2]} : {blk_data[counter_mod], c0, c1, c2, c3, c4, c5};
+	assign rdreqOutput = rdreq_subblock;
+	assign encoder_vals = (instantiate_computation) ? {blk_data[0], tail_byte[7], tail_byte[6], tail_byte[5], tail_byte[4], tail_byte[3], tail_byte[2]} : {blk_data[counter_mod], c0, c1, c2, c3, c4, c5};
 
 	
 	counter_block cb((reset || (computation_done && ~compute_enable)), (compute_enable && ~computation_done && ~instantiate_computation), clk, counter_out);
@@ -81,8 +72,8 @@
 	shiftreg outreg1(clk, (compute_enable && ~computation_done && ~instantiate_computation), reset, d1, out_to_fifo1);
 	shiftreg outreg2(clk, (compute_enable && ~computation_done && ~instantiate_computation), reset, d2, out_to_fifo2);
 	
-	fifo test_outputdata_fifo0(clk,{d0, out_to_fifo0},rdreq0, reset, wrreq_out,empty0,q0,usedw0);
-	fifo test_outputdata_fifo1(clk,{d1, out_to_fifo1},rdreq1, reset, wrreq_out,empty1,q1,usedw1);
-	fifo test_outputdata_fifo2(clk,{d2, out_to_fifo2},rdreq2, reset, wrreq_out,empty2,q2,usedw2);
+	fifo test_outputdata_fifo0(clk,{d0, out_to_fifo0},rdreqOutput, reset, wrreq_out,empty0,q0,usedw0);
+	fifo test_outputdata_fifo1(clk,{d1, out_to_fifo1},rdreqOutput, reset, wrreq_out,empty1,q1,usedw1);
+	fifo test_outputdata_fifo2(clk,{d2, out_to_fifo2},rdreqOutput, reset, wrreq_out,empty2,q2,usedw2);
 
 endmodule
