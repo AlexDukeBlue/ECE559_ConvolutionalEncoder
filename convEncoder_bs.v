@@ -29,43 +29,52 @@
 	mod_counter mc(compute_enable, clk, reset, counter_mod);
 	mod_compare compare_mod(counter_mod, on_last_bit_of_input);
 	
-	function get_delay_one_cycle_state;
-		input current_state, br, ce, rst;
-		begin
-			get_delay_one_cycle_state = ~rst && ~current_state && br && ~ce;
-		end
-	endfunction
-	
-	function get_compute_enable_state;
-		input current_state, cd, doc, rst;
-		begin
-			get_compute_enable_state = ~rst && ~cd && (doc || current_state);
-		end
-	endfunction
-	
-	function get_instantiate_computation_state;
-		input current_state, br, ce, doc, rst;
-		begin
-			get_instantiate_computation_state = ~rst && (doc || (!ce && br)); 
-		end
-	endfunction
-	
 	always @(posedge clk) 
 	begin
-		if(compute_enable && !computation_done)
+		if(reset)
 		begin
-			//Computation Logic
-			c0 <= encoder_vals[6];
-			c1 <= encoder_vals[5];
-			c2 <= encoder_vals[4];
-			c3 <= encoder_vals[3];
-			c4 <= encoder_vals[2];
-			c5 <= encoder_vals[1];
-			c6 <= encoder_vals[0];
+			c0 <= 1'b0;
+			c1 <= 1'b0;
+			c2 <= 1'b0;
+			c3 <= 1'b0;
+			c4 <= 1'b0;
+			c5 <= 1'b0;
+			c6 <= 1'b0;
+		end else
+		begin
+			if(compute_enable && !computation_done)
+			begin
+				//Computation Logic
+				c0 <= encoder_vals[6];
+				c1 <= encoder_vals[5];
+				c2 <= encoder_vals[4];
+				c3 <= encoder_vals[3];
+				c4 <= encoder_vals[2];
+				c5 <= encoder_vals[1];
+				c6 <= encoder_vals[0];
+			end
 		end
-		delay_one_cycle <= get_delay_one_cycle_state(delay_one_cycle, blk_ready, compute_enable, reset);
-		compute_enable <= get_compute_enable_state(compute_enable, computation_done, delay_one_cycle, reset);
-		instantiate_computation <= get_instantiate_computation_state(instantiate_computation, blk_ready, compute_enable, delay_one_cycle, reset);
+		if(~reset && ~delay_one_cycle && blk_ready && ~compute_enable)
+		begin
+			delay_one_cycle <= 1'b1;
+		end else
+		begin
+			delay_one_cycle <= 1'b0;
+		end
+		if(~reset && ~computation_done && (delay_one_cycle || compute_enable))
+		begin
+			compute_enable <= 1'b1;
+		end else
+		begin
+			compute_enable <= 1'b0;
+		end
+		if(~reset && (delay_one_cycle || (!compute_enable && blk_ready)))
+		begin
+			instantiate_computation <= 1'b1;
+		end else
+		begin
+			instantiate_computation <= 1'b0;
+		end
 	end
 
 	shiftreg outreg0(clk, (compute_enable && ~computation_done && ~instantiate_computation), reset, d0, out_to_fifo0);
