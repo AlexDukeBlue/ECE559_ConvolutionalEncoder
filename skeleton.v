@@ -1,6 +1,6 @@
 module skeleton(clk, reset, blk_ready, fifo_w_data, fifo_w_meta, blk_data, blk_meta, wrreq_data, wrreq_meta, cOut, dOut, q0, q1, q2, rdreq_subblock, computation_done, compute_enable, instantiate_computation, counter_out);
 input [7:0] fifo_w_data, fifo_w_meta;
-input [2:0] rdreq_subblock;
+input rdreq_subblock;
 input clk, reset, blk_ready, wrreq_data, wrreq_meta;
 output [12:0] counter_out;
 output [7:0] q0, q1, q2;
