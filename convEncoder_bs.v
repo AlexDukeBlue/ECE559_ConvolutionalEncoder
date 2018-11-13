@@ -1,6 +1,6 @@
  module convEncoder_bs(clk, reset, data_valid, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done, length_out);
-	 input [0:7] blk_data
-	 input [7:0] tail_byte;
+	input [0:7] blk_data
+	input [7:0] tail_byte;
 	input rdreq_subblock, code_block_length;
 	input clk, reset, data_valid, blk_empty; 
 	output [7:0] q0, q1, q2;
