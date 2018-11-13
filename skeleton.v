@@ -1,22 +1,21 @@
-module skeleton(clk, reset, blk_data, q0, q1, q2, rdreq_subblock, computation_done);
-input clk, reset, rdreq_subblock;
+module skeleton(clk, reset, data_valid, fifo_w_data, blk_data, wrreq_data, q0, q1, q2, rdreq_subblock, computation_done);
+input [7:0] fifo_w_data;
+input rdreq_subblock;
+input clk, reset, data_valid, wrreq_data;
 output [7:0] q0, q1, q2;
-output [7:0] blk_data;
 output computation_done;
 
-//blk_data is the output of the cod-block segmentation output FIFO.
-//tail_byte is the tail byte from the CRC.
-wire [7:0] blk_data, tail_byte;
-//Currently usedw_data and usedw_meta aren't being used but they are part of the FIFO interface.
+output [7:0] blk_data;
 wire usedw_data, usedw_meta;
-//blk_empty is the empty signal for the data FIFO from the code-segmentation block.
-wire blk_empty, blk_data_rdreq, data_valid, code_block_length, length_out;
+wire blk_empty, blk_data_rdreq, length_out;
+
+fifo test_inputdata_fifo(clk, fifo_w_data, blk_data_rdreq, reset, wrreq_data, blk_empty, blk_data, usedw_data);
 
 convEncoder_bs encoder(.clk(clk),
 							  .reset(reset),
 							  .data_valid(data_valid),
-							  .tail_byte(tail_byte),
-							  .code_block_length(code_block_length),
+							  .tail_byte(8'b11000111),
+							  .code_block_length(1'b0),
 							  .blk_empty(blk_empty),
 							  .blk_data(blk_data),
 							  .blk_data_rdreq(blk_data_rdreq),
