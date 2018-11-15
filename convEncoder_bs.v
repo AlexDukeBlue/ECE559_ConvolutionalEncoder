@@ -1,12 +1,11 @@
- module convEncoder_bs(clk, reset, blk_ready, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done);
+ module convEncoder_bs(clk, reset, blk_ready, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done, size_out);
 	input [7:0] blk_data, tail_byte;
 	input rdreq_subblock, code_block_length;
 	input clk, reset, blk_ready, blk_empty; 
 	output [7:0] q0, q1, q2;
+	output blk_data_rdreq, computation_done, size_out;
 	
-	output blk_data_rdreq, computation_done; 
-	
-	reg c0, c1, c2, c3, c4, c5, c6, delay_one_cycle, compute_enable, instantiate_computation;
+	reg c0, c1, c2, c3, c4, c5, c6, delay_one_cycle, compute_enable, instantiate_computation, out_size;
 	
 	wire [12:0] counter_out;
 	wire [6:0] out_to_fifo0, out_to_fifo1, out_to_fifo2, encoder_vals;
@@ -21,7 +20,7 @@
 	assign wrreq_out = ((counter_mod==3'b000) && (compute_enable && ~computation_done && ~instantiate_computation));
 	assign rdreqOutput = rdreq_subblock;
 	assign encoder_vals = (instantiate_computation) ? {blk_data[0], tail_byte[7], tail_byte[6], tail_byte[5], tail_byte[4], tail_byte[3], tail_byte[2]} : {blk_data[counter_mod], c0, c1, c2, c3, c4, c5};
-
+	assign size_out = out_size;
 	
 	counter_block cb((reset || (computation_done && ~compute_enable)), (compute_enable && ~computation_done && ~instantiate_computation), clk, counter_out);
 	large_counter_compare lcc(counter_out, large_computation_notdone);
@@ -40,6 +39,10 @@
 			c4 <= 1'b0;
 			c5 <= 1'b0;
 			c6 <= 1'b0;
+			compute_enable <= 1'b0;
+			delay_one_cycle <= 1'b0;
+			instantiate_computation <= 1'b0;
+			out_size <= 1'b0;
 		end else
 		begin
 			if(compute_enable && !computation_done)
@@ -74,6 +77,10 @@
 		end else
 		begin
 			instantiate_computation <= 1'b0;
+		end
+		if(instantiate_computation)
+		begin
+			out_size <= code_block_length;
 		end
 	end
 
