@@ -1,16 +1,17 @@
- module convEncoder_bs(clk, reset, data_valid, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done, length_out);
-	input [0:7] blk_data
-	input [7:0] tail_byte;
+ module convEncoder_bs(clk, reset, data_valid, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done, length_out, encoder_vals);
+	input [0:7] blk_data;
+	input [0:7] tail_byte;
 	input rdreq_subblock, code_block_length;
 	input clk, reset, data_valid, blk_empty; 
 	output [7:0] q0, q1, q2;
+	output [6:0] encoder_vals;
 	output blk_data_rdreq, computation_done, length_out; 
 	
 	reg [2:0] ready_for_computation;
 	reg c0, c1, c2, c3, c4, c5, c6, delay_one_cycle, compute_enable, instantiate_computation, output_length;
 	
 	wire [12:0] counter_out;
-	wire [6:0] out_to_fifo0, out_to_fifo1, out_to_fifo2, encoder_vals;
+	wire [6:0] out_to_fifo0, out_to_fifo1, out_to_fifo2;
 	wire [2:0] counter_mod;
 	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, usedw0, usedw1, usedw2, setup_done;
 
@@ -63,10 +64,10 @@
 		end
 		if(ready_for_computation == 3'b000)
 		begin
-			if(data_valid && ~blk_empty)
+			if(data_valid && ~(empty0 && empty1 && empty2))
 			begin
 				ready_for_computation <= 3'b001;
-			end else if(~data_valid && blk_empty)
+			end else if(~data_valid && (empty0 && empty1 && empty2))
 			begin
 				ready_for_computation <= 3'b010;
 			end else
@@ -75,7 +76,7 @@
 			end
 		end else if(ready_for_computation == 3'b001)
 		begin
-			if(blk_empty)
+			if(empty0 && empty1 && empty2)
 			begin
 				ready_for_computation <= 3'b100;
 			end else
@@ -91,7 +92,7 @@
 			begin
 				ready_for_computation <= 3'b010;
 			end
-		end else if(ready_for_computation == 3'b100)
+		end else if((ready_for_computation == 3'b100) && computation_done)
 		begin
 			ready_for_computation <= 3'b000;
 		end
