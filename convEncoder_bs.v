@@ -1,46 +1,34 @@
- module convEncoder_bs(clk, reset, data_valid, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done, length_out, rfc, emptybus, usedw0, usedw1, usedw2, probewires, ev, count, countmod, cr);
+ module convEncoder_bs(clk, reset, data_valid, tail_byte, code_block_length, blk_empty, blk_data, blk_data_rdreq, q0, q1, q2, rdreq_subblock, computation_done, length_out);
 	input [0:7] blk_data;
 	input [0:7] tail_byte;
 	input rdreq_subblock, code_block_length;
 	input clk, reset, data_valid, blk_empty; 
 	output [7:0] q0, q1, q2;
 	output blk_data_rdreq, computation_done, length_out;
-
-	output [1:0] cr;
-	output [2:0] rfc, emptybus, countmod, probewires;
-	output [6:0] ev;
-	output [9:0] usedw0, usedw1, usedw2;
-	output [12:0] count;
 	
 	reg [2:0] ready_for_computation;
 	reg [1:0] counter_reset;
 	reg c0, c1, c2, c3, c4, c5, c6, delay_one_cycle, compute_enable, instantiate_computation, output_length;
 	
 	wire [12:0] counter_out;
-	//wire [9:0] usedw0, usedw1, usedw2;
+	wire [9:0] usedw0, usedw1, usedw2;
 	wire [6:0] out_to_fifo0, out_to_fifo1, out_to_fifo2, encoder_vals;
 	wire [2:0] counter_mod;
-	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, setup_done;
+	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, setup_done, counter_done;
 
-	assign computation_done = (output_length) ? ~large_computation_notdone : ~small_computation_notdone;
+	assign counter_done = (output_length) ? ~large_computation_notdone : ~small_computation_notdone;
 	assign blk_data_rdreq = (delay_one_cycle && instantiate_computation && ~blk_empty) || (on_last_bit_of_input && ~blk_empty && compute_enable);
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
 	assign d1 = c0 ^ c1 ^ c2 ^ c3 ^ c6;
 	assign d2 = c0 ^ c1 ^ c2 ^ c4 ^ c6;
-	assign wrreq_out = ((counter_mod==3'b000) && (compute_enable && ~computation_done && ~instantiate_computation));
+	assign wrreq_out = ((counter_mod==3'b000) && (compute_enable && ~counter_done && ~instantiate_computation));
 	assign rdreqOutput = rdreq_subblock;
 	assign encoder_vals = (instantiate_computation) ? {blk_data[0], tail_byte[7], tail_byte[6], tail_byte[5], tail_byte[4], tail_byte[3], tail_byte[2]} : {blk_data[counter_mod], c0, c1, c2, c3, c4, c5}; 
 	assign setup_done = ready_for_computation == 3'b100;
 	assign length_out = output_length;
-	assign rfc = ready_for_computation;
-	assign emptybus = {empty0, empty1, empty2};
-	assign probewires = {delay_one_cycle, compute_enable, instantiate_computation};
-	assign ev = encoder_vals;
-	assign count = counter_out;
-	assign countmod = counter_mod;
-	assign cr = counter_reset;
+	assign computation_done = counter_reset == 2'b10;
 	
-	counter_block cb((compute_enable && ~computation_done && ~instantiate_computation || (counter_reset[0] || counter_reset[1])), clk, (reset || (counter_reset == 2'b10)), counter_out);
+	counter_block cb((compute_enable && ~counter_done && ~instantiate_computation || (counter_reset[0] || counter_reset[1])), clk, (reset || (counter_reset == 2'b10)), counter_out);
 	large_counter_compare lcc(counter_out, large_computation_notdone);
 	small_counter_compare scc(counter_out[10:0], small_computation_notdone);
 	mod_counter mc((compute_enable || (counter_reset[0] || counter_reset[1])), clk, (reset || (counter_reset == 2'b10)), counter_mod);
@@ -65,7 +53,7 @@
 			counter_reset <= 2'b00;
 		end else
 		begin
-			if(compute_enable && ~computation_done)
+			if(compute_enable && ~counter_done)
 			begin
 				//Computation Logic
 				c0 <= encoder_vals[6];
@@ -79,7 +67,7 @@
 		end
 		if(counter_reset == 2'b00)
 		begin
-			if(computation_done)
+			if(counter_done)
 			begin
 				counter_reset <= 2'b01;
 			end
@@ -120,7 +108,7 @@
 			begin
 				ready_for_computation <= 3'b010;
 			end
-		end else if((ready_for_computation == 3'b100) && computation_done)
+		end else if((ready_for_computation == 3'b100) && counter_done)
 		begin
 			ready_for_computation <= 3'b000;
 		end
@@ -131,7 +119,7 @@
 		begin
 			delay_one_cycle <= 1'b0;
 		end
-		if(~reset && ~computation_done && (delay_one_cycle || compute_enable))
+		if(~reset && ~counter_done && (delay_one_cycle || compute_enable))
 		begin
 			compute_enable <= 1'b1;
 		end else
@@ -151,9 +139,9 @@
 		end
 	end
 
-	shiftreg outreg0(clk, (compute_enable && ~computation_done && ~instantiate_computation), reset, d0, out_to_fifo0);
-	shiftreg outreg1(clk, (compute_enable && ~computation_done && ~instantiate_computation), reset, d1, out_to_fifo1);
-	shiftreg outreg2(clk, (compute_enable && ~computation_done && ~instantiate_computation), reset, d2, out_to_fifo2);
+	shiftreg outreg0(clk, (compute_enable && ~counter_done && ~instantiate_computation), reset, d0, out_to_fifo0);
+	shiftreg outreg1(clk, (compute_enable && ~counter_done && ~instantiate_computation), reset, d1, out_to_fifo1);
+	shiftreg outreg2(clk, (compute_enable && ~counter_done && ~instantiate_computation), reset, d2, out_to_fifo2);
 	
 	fifo test_outputdata_fifo0(clk,{d0, out_to_fifo0},rdreqOutput, reset, wrreq_out,empty0,q0,usedw0);
 	fifo test_outputdata_fifo1(clk,{d1, out_to_fifo1},rdreqOutput, reset, wrreq_out,empty1,q1,usedw1);
