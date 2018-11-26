@@ -1,8 +1,7 @@
-x = [1, 1, 1, 0, 0, 0, 1, 1,...
-     1, 1, 1, 1, 1, 1, 1, 1,...
-     1, 0, 1, 0, 1, 0, 1, 0,...
-     0, 1, 0, 1, 0, 1, 0, 1,...
-     1, 0, 1, 1, 0, 0, 1, 1];
+x = [1, 1, 0, 1, 0, 0, 1, 1,...
+     1, 0, 1, 0, 1, 1, 1, 1,...
+     0, 0, 0, 0, 1, 1, 0, 1,...
+     0, 1, 1, 1, 1, 0, 1, 0];
 
 d0Array = [];
 d1Array = [];
@@ -22,7 +21,7 @@ count=0;
 %open file we will write to
 outputFile = fopen('address-dout', 'w');
 %create first dout, all tail bits
-cout = [x(bit1) x(length(x)-5) x(length(x)-4) x(length(x)-3) x(length(x) -2) x(length(x)-1) x(length(x))];
+cout = [x(bit1) x(length(x)) x(length(x)-1) x(length(x)-2) x(length(x) -3) x(length(x)-4) x(length(x)-5)];
 dout0 = bitxor(bitxor(bitxor(cout(1), cout(3)), bitxor(cout(4), cout(6))), cout(7));
 dout1 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(4))), cout(7));
 dout2 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(5))), cout(7));
@@ -34,7 +33,7 @@ d1Array = [d1Array dout1];
 d2Array = [d2Array dout2];
 
 %create second dout, one "new" bit
-cout = [x(bit2) x(bit1) x(length(x)-5) x(length(x)-4) x(length(x)-3) x(length(x) -2) x(length(x)-1)];
+cout = [x(bit2) x(bit1) x(length(x)) x(length(x)-1) x(length(x)-2) x(length(x) -3) x(length(x)-4)];
 dout0 = bitxor(bitxor(bitxor(cout(1), cout(3)), bitxor(cout(4), cout(6))), cout(7));
 dout1 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(4))), cout(7));
 dout2 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(5))), cout(7));
@@ -46,7 +45,7 @@ d1Array = [d1Array dout1];
 d2Array = [d2Array dout2];
 
 %create third dout, two "new" bit
-cout = [ x(bit3) x(bit2) x(bit1) x(length(x)-5) x(length(x)-4) x(length(x)-3) x(length(x) -2)];
+cout = [ x(bit3) x(bit2) x(bit1) x(length(x)) x(length(x)-1) x(length(x)-2) x(length(x) -3)];
 dout0 = bitxor(bitxor(bitxor(cout(1), cout(3)), bitxor(cout(4), cout(6))), cout(7));
 dout1 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(4))), cout(7));
 dout2 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(5))), cout(7));
@@ -58,7 +57,7 @@ d1Array = [d1Array dout1];
 d2Array = [d2Array dout2];
 
 %create fourth dout, three "new" bit
-cout = [x(bit4) x(bit3) x(bit2) x(bit1) x(length(x)-5) x(length(x)-4) x(length(x)-3)];
+cout = [x(bit4) x(bit3) x(bit2) x(bit1) x(length(x)) x(length(x)-1) x(length(x)-2)];
 dout0 = bitxor(bitxor(bitxor(cout(1), cout(3)), bitxor(cout(4), cout(6))), cout(7));
 dout1 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(4))), cout(7));
 dout2 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(5))), cout(7));
@@ -70,7 +69,7 @@ d1Array = [d1Array dout1];
 d2Array = [d2Array dout2];
 
 %create fifth dout, four "new" bit
-cout = [x(bit5) x(bit4) x(bit3) x(bit2) x(bit1) x(length(x)-5) x(length(x)-4)];
+cout = [x(bit5) x(bit4) x(bit3) x(bit2) x(bit1) x(length(x)) x(length(x)-1)];
 dout0 = bitxor(bitxor(bitxor(cout(1), cout(3)), bitxor(cout(4), cout(6))), cout(7));
 dout1 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(4))), cout(7));
 dout2 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(5))), cout(7));
@@ -82,7 +81,7 @@ d1Array = [d1Array dout1];
 d2Array = [d2Array dout2];
 
 %create sixth dout, five "new" bit
-cout = [x(bit6) x(bit5) x(bit4) x(bit3) x(bit2) x(bit1) x(length(x)-5)];
+cout = [x(bit6) x(bit5) x(bit4) x(bit3) x(bit2) x(bit1) x(length(x))];
 dout0 = bitxor(bitxor(bitxor(cout(1), cout(3)), bitxor(cout(4), cout(6))), cout(7));
 dout1 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(4))), cout(7));
 dout2 = bitxor(bitxor(bitxor(cout(1), cout(2)), bitxor(cout(3), cout(5))), cout(7));
