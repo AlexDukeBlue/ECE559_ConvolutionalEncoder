@@ -12,7 +12,7 @@ wire blk_empty, blk_data_rdreq, length_out;
 
 fifo test_inputdata_fifo(clk, fifo_w_data, blk_data_rdreq, reset, wrreq_data, blk_empty, blk_data, usedw_data);
 
-convEncoder_bs encoder(.clk(clk),
+convEncoder_par encoder(.clk(clk),
 							  .reset(reset),
 							  .data_valid(data_valid),
 							  .tail_byte(tail_byte),
