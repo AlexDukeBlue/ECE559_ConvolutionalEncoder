@@ -21,7 +21,7 @@
 	wire on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, setup_done, counter_done;
 	
 	assign counter_done = (output_length) ? ~large_computation_notdone : ~small_computation_notdone;
-	assign blk_data_rdreq = (delay_one_cycle && instantiate_computation && ~blk_empty) || (on_last_bit_of_input && ~blk_empty && compute_enable);
+	assign blk_data_rdreq = (delay_one_cycle && instantiate_computation && ~blk_empty) || (~blk_empty && compute_enable);
 	assign c0 = blk_data[0];
 	assign w0 = blk_data[1];
 	assign w1 = blk_data[2];
@@ -54,9 +54,9 @@
 	assign d70 = w6 ^ w4 ^ w3 ^ w1 ^ w0;
 	assign d71 = w6 ^ w5 ^ w4 ^ w3 ^ w0;
 	assign d72 = w6 ^ w5 ^ w4 ^ w2 ^ w0;
-	assign wrreq_out = ((counter_mod==3'b000) && (compute_enable && ~counter_done && ~instantiate_computation));
+	assign wrreq_out = (compute_enable && ~counter_done);
 	assign rdreqOutput = rdreq_subblock;
-	assign encoder_vals = (instantiate_computation) ? {tail_byte[7], tail_byte[6], tail_byte[5], tail_byte[4], tail_byte[3], tail_byte[2]} : {blk_data[7], blk_data[6], blk_data[5], blk_data[4], blk_data[3], blk_data[2]}; 
+	assign encoder_vals = (delay_one_cycle) ? {tail_byte[7], tail_byte[6], tail_byte[5], tail_byte[4], tail_byte[3], tail_byte[2]} : {blk_data[7], blk_data[6], blk_data[5], blk_data[4], blk_data[3], blk_data[2]}; 
 	assign setup_done = ready_for_computation == 3'b100;
 	assign length_out = output_length;
 	assign computation_done = counter_reset == 2'b10;
@@ -86,7 +86,7 @@
 			counter_reset <= 2'b00;
 		end else
 		begin
-			if(compute_enable && ~counter_done)
+			if((compute_enable || delay_one_cycle) && ~counter_done)
 			begin
 				//Computation Logic
 				c1 <= encoder_vals[5];
