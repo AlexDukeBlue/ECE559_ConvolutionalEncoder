@@ -45,7 +45,7 @@ module large_counter_compare_par (
 	output	  aeb;
 	output	  alb;
 
-	wire [9:0] sub_wire0 = 10'd767;
+	wire [9:0] sub_wire0 = 10'h300;
 	wire  sub_wire1;
 	wire  sub_wire2;
 	wire  aeb = sub_wire1;

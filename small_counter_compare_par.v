@@ -43,7 +43,7 @@ module small_counter_compare_par (
 	input	[7:0]  dataa;
 	output	  alb;
 
-	wire [7:0] sub_wire0 = 8'h84;
+	wire [7:0] sub_wire0 = 8'd131;
 	wire  sub_wire1;
 	wire  alb = sub_wire1;
 
