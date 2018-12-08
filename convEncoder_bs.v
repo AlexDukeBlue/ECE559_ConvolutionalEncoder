@@ -6,17 +6,18 @@
 	output [7:0] q0, q1, q2;
 	output blk_data_rdreq, computation_done, length_out;
 	
-	reg [2:0] ready_for_computation;
+	reg [2:0] ready_for_computation, computeFSM_val;
 	reg [1:0] counter_reset;
-	reg c0, c1, c2, c3, c4, c5, c6, delay_one_cycle, compute_enable, instantiate_computation, output_length;
+	reg c0, c1, c2, c3, c4, c5, c6, output_length;
 	
 	wire [12:0] counter_out;
 	wire [9:0] usedw0, usedw1, usedw2;
 	wire [6:0] out_to_fifo0, out_to_fifo1, out_to_fifo2, encoder_vals;
 	wire [2:0] counter_mod;
 	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, setup_done, counter_done;
-
-	assign counter_done = (output_length) ? ~large_computation_notdone : ~small_computation_notdone;
+	wire delay_one_cycle, compute_enable, instantiate_computation;
+	
+	assign counter_done = (output_length == 1'b1) ? ~large_computation_notdone : ~small_computation_notdone;
 	assign blk_data_rdreq = (delay_one_cycle && instantiate_computation && ~blk_empty) || (on_last_bit_of_input && ~blk_empty && compute_enable);
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
 	assign d1 = c0 ^ c1 ^ c2 ^ c3 ^ c6;
@@ -25,13 +26,16 @@
 	assign rdreqOutput = rdreq_subblock;
 	assign encoder_vals = (instantiate_computation) ? {blk_data[0], tail_byte[7], tail_byte[6], tail_byte[5], tail_byte[4], tail_byte[3], tail_byte[2]} : {blk_data[counter_mod], c0, c1, c2, c3, c4, c5}; 
 	assign setup_done = ready_for_computation == 3'b100;
-	assign length_out = output_length;
+	assign length_out = output_length == 1'b1;
 	assign computation_done = counter_reset == 2'b10;
+	assign instantiate_computation = (computeFSM_val == 3'b110) || (computeFSM_val == 3'b101);
+	assign delay_one_cycle = computeFSM_val == 3'b110;
+	assign compute_enable = (computeFSM_val == 3'b101) || (computeFSM_val == 3'b001);
 	
-	counter_block cb((compute_enable && ~counter_done && ~instantiate_computation || (counter_reset[0] || counter_reset[1])), clk, (reset || (counter_reset == 2'b10)), counter_out);
+	counter_block cb((compute_enable && ~counter_done && ~instantiate_computation || (counter_reset == 2'b10 || counter_reset == 2'b01)), clk, (reset || (counter_reset == 2'b10)), counter_out);
 	large_counter_compare lcc(counter_out, large_computation_notdone);
 	small_counter_compare scc(counter_out[10:0], small_computation_notdone);
-	mod_counter mc((compute_enable || (counter_reset[0] || counter_reset[1])), clk, (reset || (counter_reset == 2'b10)), counter_mod);
+	mod_counter mc((compute_enable || (counter_reset == 2'b10 || counter_reset == 2'b01)), clk, (reset || (counter_reset == 2'b10)), counter_mod);
 	mod_compare compare_mod(counter_mod, on_last_bit_of_input);
 	
 	always @(posedge clk) 
@@ -46,9 +50,7 @@
 			c5 <= 1'b0;
 			c6 <= 1'b0;
 			ready_for_computation <= 3'b000;
-			delay_one_cycle <= 1'b0;
-			compute_enable <= 1'b0;
-			instantiate_computation <= 1'b0;
+			computeFSM_val <= 3'b000;
 			output_length <= 1'b0;
 			counter_reset <= 2'b00;
 		end else
@@ -78,6 +80,7 @@
 		begin
 			counter_reset <= 2'b00;
 		end
+		
 		if(ready_for_computation == 3'b000)
 		begin
 			if(data_valid && ~(empty0 && empty1 && empty2))
@@ -112,30 +115,45 @@
 		begin
 			ready_for_computation <= 3'b000;
 		end
-		if(~reset && ~delay_one_cycle && setup_done && ~compute_enable)
+		
+		if(computeFSM_val == 3'b000)
 		begin
-			delay_one_cycle <= 1'b1;
-		end else
+			if(setup_done)
+			begin
+				computeFSM_val <= 3'b110;
+			end else
+			begin
+				computeFSM_val <= 3'b000;
+			end
+		end else if(computeFSM_val == 3'b110)
 		begin
-			delay_one_cycle <= 1'b0;
+			computeFSM_val <= 3'b101;
+		end else if(computeFSM_val == 3'b101)
+		begin
+			computeFSM_val <= 3'b001;
+		end else if(computeFSM_val == 3'b001)
+		begin
+			if(counter_done)
+			begin
+				computeFSM_val <= 3'b000;
+			end else
+			begin
+				computeFSM_val <= 3'b001;
+			end
 		end
-		if(~reset && ~counter_done && (delay_one_cycle || compute_enable))
+		
+		if(output_length == 1'b0)
 		begin
-			compute_enable <= 1'b1;
-		end else
+			if(instantiate_computation && code_block_length)
+			begin
+				output_length <= 1'b1;
+			end
+		end else if(output_length == 1'b1)
 		begin
-			compute_enable <= 1'b0;
-		end
-		if(~reset && (delay_one_cycle || (~compute_enable && setup_done)))
-		begin
-			instantiate_computation <= 1'b1;
-		end else
-		begin
-			instantiate_computation <= 1'b0;
-		end
-		if(instantiate_computation)
-		begin
-			output_length <= code_block_length;
+			if(instantiate_computation && ~code_block_length)
+			begin
+				output_length <= 1'b0;
+			end
 		end
 	end
 
