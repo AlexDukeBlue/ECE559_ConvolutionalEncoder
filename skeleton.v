@@ -1,17 +1,17 @@
-module skeleton(clk, clk50, out_clk, reset, blk_ready, blk_ready_out, fifo_w_data, blk_data, wrreq_data, q0, q1, q2, computation_done, rdreq_subblock, disp0, disp1, disp2, disp3, disp4, disp5);
+module skeleton(clk, clk50, out_clk, reset, blk_ready, blk_ready_out, fifo_w_data, blk_data, wrreq_data, q0, q1, q2, computation_done, rdreq_subblock, disp0, disp1, disp2, disp3, disp4, disp5, empty, should_empty);
 input [7:0] fifo_w_data;
-input clk, clk50, reset, blk_ready, wrreq_data, rdreq_subblock;
+input clk, clk50, reset, blk_ready, wrreq_data, rdreq_subblock, should_empty;
 output [7:0] q0, q1, q2;
 output [7:0] blk_data;
 output [6:0] disp0, disp1, disp2, disp3, disp4, disp5;
-output computation_done, out_clk;
+output computation_done, out_clk, empty;
 output reg blk_ready_out;
 
 reg [10:0] counter;
-reg computation_ended, switch_clocks, was_ready;
+reg computation_ended, switch_clocks, was_ready, count_to_empty;
 
 wire usedw_data;
-wire blk_empty_data, blk_data_rdreq;
+wire blk_data_rdreq, blk_empty_data;
 wire ireset, iwrreq_data, length_out, actual_clock; 
 
 assign actual_clock = (switch_clocks) ? clk50 : ~clk;
@@ -24,6 +24,7 @@ initial begin
 	computation_ended <= 1'b0;
 	blk_ready_out <= 1'b0;
 	was_ready <= 1'b0;
+	counter <= 11'b0;
 end
 
 always @(posedge actual_clock) begin
@@ -41,7 +42,7 @@ always @(posedge actual_clock) begin
 	begin
 		computation_ended <= 1'b1;
 	end
-	if(counter >= 11'd1056)
+	if(counter >= 11'd64)
 	begin
 		switch_clocks <= 1'b0;
 		computation_ended <= 1'b0;
@@ -75,7 +76,8 @@ convEncoder_bs encoder(.clk(actual_clock),
 							  .q2(q2),
 							  .rdreq_subblock(rdreq_subblock),
 							  .computation_done(computation_done),
-							  .length_out(length_out)
+							  .length_out(length_out),
+							  .empty(empty)
 							  );
 
 endmodule 
