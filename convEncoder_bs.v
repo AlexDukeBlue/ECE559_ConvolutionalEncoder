@@ -17,6 +17,7 @@
 	wire d0, d1, d2, on_last_bit_of_input, small_computation_notdone, large_computation_notdone, wrreq_out, rdreqOutput, empty0, empty1, empty2, setup_done, counter_done;
 	wire delay_one_cycle, compute_enable, instantiate_computation;
 	
+	assign empty = empty0 && empty1 && empty2;
 	assign counter_done = (output_length == 1'b1) ? ~large_computation_notdone : ~small_computation_notdone;
 	assign blk_data_rdreq = (delay_one_cycle && instantiate_computation && ~blk_empty) || (on_last_bit_of_input && ~blk_empty && compute_enable);
 	assign d0 = c0 ^ c2 ^ c3 ^ c5 ^ c6;
@@ -66,7 +67,6 @@
 				c5 <= encoder_vals[1];
 				c6 <= encoder_vals[0];
 			end
-		end
 		if(counter_reset == 2'b00)
 		begin
 			if(counter_done)
@@ -154,6 +154,7 @@
 			begin
 				output_length <= 1'b0;
 			end
+		end
 		end
 	end
 

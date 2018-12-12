@@ -1,16 +1,16 @@
-module skeleton(clk, clk50, out_clk, reset, blk_ready, blk_ready_out, fifo_w_data, blk_data, wrreq_data, q0, q1, q2, computation_done, rdreq_subblock, disp0, disp1, disp2, disp3, disp4, disp5, empty, should_empty);
+module skeleton(clk, clk50, out_clk, reset, blk_ready, blk_ready_out, fifo_w_data, blk_data, wrreq_data, q0, q1, q2, computation_ended, rdreq_subblock, disp0, disp1, disp2, disp3, disp4, disp5, empty, should_empty);
 input [7:0] fifo_w_data;
 input clk, clk50, reset, blk_ready, wrreq_data, rdreq_subblock, should_empty;
 output [7:0] q0, q1, q2;
 output [7:0] blk_data;
 output [6:0] disp0, disp1, disp2, disp3, disp4, disp5;
-output computation_done, out_clk, empty;
+output computation_ended, out_clk, empty;
 output reg blk_ready_out;
 
 reg [10:0] counter;
 reg computation_ended, switch_clocks, was_ready, count_to_empty;
 
-wire usedw_data;
+wire usedw_data, computation_done;
 wire blk_data_rdreq, blk_empty_data;
 wire ireset, iwrreq_data, length_out, actual_clock; 
 
@@ -41,17 +41,18 @@ always @(posedge actual_clock) begin
 	if(computation_done)
 	begin
 		computation_ended <= 1'b1;
-	end
-	if(counter >= 11'd64)
-	begin
 		switch_clocks <= 1'b0;
-		computation_ended <= 1'b0;
 		blk_ready_out <= 1'b0;
 		was_ready <= 1'b0;
+		counter <= 11'd0;
+	end
+	if(~computation_ended)
+	begin
+		counter <= counter + 1'b1;
 	end
 	if(computation_ended)
 	begin
-		counter <= counter + 1'b1;
+		computation_ended <= 1'b0;
 	end
 end
 
